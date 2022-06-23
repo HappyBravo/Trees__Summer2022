@@ -5,6 +5,6 @@ ___
 
 | Tree | Python | C |
 |------|--------|----|
-| AVL Tree | ✘ | ✓ |
+| AVL Tree | ✓ | ✓ |
 | Binary Search Tree | ✓ | ✓ |
 | Red-Black Tree | ✘ | ✘ |
