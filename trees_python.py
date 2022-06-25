@@ -1,4 +1,3 @@
-
 class bt_Node():
     def __init__(self, data): # CONSTRUCTOR
         self.data = data
@@ -15,6 +14,15 @@ class avl_Node():
         self.left = None
         self.right = None
         self.height = 1
+
+ 
+# class rb_Node():
+#     def __init__(self, data):
+#         self.data = data
+#         self.left = None
+#         self.right = None
+#         self.parent = None
+#         self.color = 1 # 1 : RED, 0 : BLACK
 
 class Tree:
     travel_inorder = "INORDER"
@@ -53,6 +61,37 @@ class Tree:
             print(">>> PRE-ORDER TRAVERSAL : ")
             self.preorder(self.root)
 
+    def search(self, data):
+        # temp = None
+        node = self.root
+        
+        if node is None:
+            return None
+        
+        while node and node.data != data:
+            # temp = node
+            if data < node.data:
+                node = node.left
+            else:
+                node = node.right
+        if node == None:
+            print("NOT FOUND!!!")
+            return node
+        else :
+            return node
+
+    def minValueNode(self, root):
+        temp = root
+        while temp.left is not None:
+            temp = temp.left
+        return temp
+    
+    def maxValueNode(self, root):
+        temp = root
+        while temp.right is not None:
+            temp = temp.right
+        return temp
+
     def height_main(self, node):
         left = 1
         right = 1
@@ -72,7 +111,16 @@ class Tree:
         width = 5
         if node is None:
             return 0
-        b = f"({node.data:03d})"
+        
+        if hasattr(node, 'height'):
+            width = 9
+            b = f"({node.data:03d}, {node.height:02d})"
+        elif hasattr(node, 'color'):
+            width = 8
+            b = f"({node.data:03d}, {node.color})" # RED = 1, BLACK = 0
+        else:
+            b = f"({node.data:03d})"
+        
         b = list(b)
         # print(len(b))
 
@@ -145,17 +193,17 @@ class BST(Tree):
             self.root = bt_Node(data)
             print("new node as ROOT created")
 
-    def minValueNode(self, root):
-        temp = root
-        while temp.left is not None:
-            temp = temp.left
-        return temp
+    # def minValueNode(self, root):
+    #     temp = root
+    #     while temp.left is not None:
+    #         temp = temp.left
+    #     return temp
     
-    def maxValueNode(self, root):
-        temp = root
-        while temp.right is not None:
-            temp = temp.right
-        return temp
+    # def maxValueNode(self, root):
+    #     temp = root
+    #     while temp.right is not None:
+    #         temp = temp.right
+    #     return temp
 
     def remove_main(self, node, data):
         if node is None: # IF DATA IS NOT PRESENT
@@ -188,24 +236,24 @@ class BST(Tree):
         self.root = self.remove_main(self.root, data)
         # return self
     
-    def search(self, data):
-        # temp = None
-        node = self.root
+    # def search(self, data):
+    #     # temp = None
+    #     node = self.root
         
-        if node is None:
-            return None
+    #     if node is None:
+    #         return None
         
-        while node and node.data != data:
-            # temp = node
-            if data < node.data:
-                node = node.left
-            else:
-                node = node.right
-        if node == None:
-            print("NOT FOUND!!!")
-            return node
-        else :
-            return node
+    #     while node and node.data != data:
+    #         # temp = node
+    #         if data < node.data:
+    #             node = node.left
+    #         else:
+    #             node = node.right
+    #     if node == None:
+    #         print("NOT FOUND!!!")
+    #         return node
+    #     else :
+    #         return node
 
 class AVL(Tree):
     def __init__(self):
@@ -253,7 +301,6 @@ class AVL(Tree):
         
         return temp1
   
-
     def rotate_left(self, node):
         # INITIALLY
         #          NODE
@@ -321,4 +368,240 @@ class AVL(Tree):
     def insert(self, data):
         self.root = self.insert_main(self.root, data)
         # return self
+
+    def remove_main(self, node, data):
+        if node is None:
+            return node
+        
+        # SEARCHING FOR THE DATA TO BE DELETED
+        if data < node.data:
+            node.left = self.remove_main(node.left, data)
+        elif data > node.data:
+            node.right = self.remove_main(node.right, data)
+        else:
+            if node.left is None:
+                return node.right
+            elif node.right is None:
+                return node.left
+            else:
+                temp = self.minValueNode(node.right)
+                node.data = temp.data
+                node.right = self.remove_main(node.right, temp.data)
+        
+        # BALANCING THE TREE AFTER DELETION
+        if node is None:
+            return node
+        
+        node.height = max(self.avl_height(node.right), self.avl_height(node.left)) + 1
+
+        balance_fact = self.balance_factor(node)
+        print(f"Balance factor at {node.data} = {balance_fact}")
+
+        if balance_fact > 1 and self.balance_factor(node.left) >= 0:
+            return self.rotate_right(node)
+        
+        if balance_fact < -1 and self.balance_factor(node.right) <= 0:
+            return self.rotate_left(node)
+
+        if balance_fact > 1 and self.balance_factor(node.left) < 0:
+            node.left = self.rotate_left(node.left)
+            return self.rotate_right(node)
+        
+        if balance_fact < -1 and self.balance_factor(node.right) > 0:
+            node.right = self.rotate_right(node.right)
+            return self.rotate_left(node)
+        
+         
+        # if balance_fact > 1:                  # LEFT TREE IS HEAVY
+        #     if data < node.left.data:          # LEFT LEFT
+        #         return self.rotate_right(node)
+        #     else:                             # LEFT RIGHT
+        #         node.left = self.rotate_left(node.left)
+        #         return self.rotate_right(node)
+        # elif balance_fact < -1 :               # RIGHT TREE IS HEAVY
+        #     if data > node.right.data:          # RIGHT RIGHT
+        #         return self.rotate_left(node)
+        #     else:                              # RIGHT LEFT
+        #         node.right = self.rotate_right(node.right)
+        #         return self.rotate_left(node)
+        
+        # node.height = max(self.avl_height(node.right), self.avl_height(node.left)) + 1
+
+        return node
+    
+    def remove(self, data):
+        self.root = self.remove_main(self.root, data)
+
+
+'''
+RECOLORING AFTER INSERTION NEED SOME BUG FIXING
+
+class RBT(Tree):
+    def __init__(self):
+        self.root = None
+
+    def rotate_left(self, node):
+        temp1 = node.right
+        node.right = temp1.left
+
+        if temp1.left is not None:
+            temp1.parent.left = node
+        
+        temp1.parent = node.parent
+
+        if node.parent is None:
+            # pass
+            self.root = temp1
+        elif node is node.parent.left:
+            node.parent.left = temp1
+        else:
+            node.parent.right = temp1
+        
+        temp1.left = node
+        node.parent = temp1
+
+        return temp1
+        # pass
+
+    def rotate_right(self, node):
+        temp1 = node.left
+        node.left = temp1.right
+
+        if temp1.right is not None:
+            temp1.right.parent = node
+        
+        temp1.parent = node.parent
+
+        if node.parent is None:
+            self.root = temp1
+            pass
+        elif node is node.parent.left:
+            node.parent.right = node
+        else:
+            node.parent.left = node
+
+        temp1.right = node
+        node.parent = temp1
+
+        return temp1
+        # pass
+    
+    def fix_insert(self, node):
+        while node.parent.color == 1: # IF THE COLOR IS BLACK, MEANS ALL PROPERTIES ARE SATISFIED
+            print("-:_", end="")
+            if node.parent == node.parent.parent.right :
+                uncle = node.parent.parent.left # UNCLE
+                if uncle != None:
+                    if uncle.color == 1:  # IF PARENT AND UNCLE IS RED, SET BOTH AS BLACK
+                        node.parent.color = 0
+                        uncle.color = 0
+                        node.parent.parent.color = 1 # SET GRANDFATHER COLOR RED
+                        node = node.parent.parent # MOVING THE POINTER TO GRANDPARENT FOR FIXING TREE ABOVE
+                else:
+                    if node == node.parent.left:
+                        node = node.parent
+                        self.rotate_right(node)
+                    node.parent.color = 0
+                    node.parent.parent.color = 1
+                    self.rotate_left(node.parent.parent)
+            else:
+                uncle = node.parent.parent.right # UNCLE
+                if uncle != None:
+                    if uncle.color == 1 :
+                        node.parent.color = 0
+                        uncle.color = 0
+                        node.parent.parent.color = 1
+                        node = node.parent.parent
+                else:
+                    if node == node.parent.left:
+                        node = node.parent
+                        self.rotate_left(node)
+                    node.parent.color = 0
+                    node.parent.parent.color = 1
+                    self.rotate_right(node.parent.parent)
+            if node == self.root:
+                break
+        self.root.color = 0
+
+
+
+    
+    def insert_main(self, node, data):
+        '''
+        if node is None:
+            node = rb_Node(data)
+            print(f"\nNew Node made for {data}")
+            return node
+
+        if data < node.data:
+            node.left = self.insert_main(node.left, data)
+            
+            print(f"\n{data} inserted in Left Branch of {node.data}")
+            
+            node.left.parent = node
+            
+            print(f"Parent linking of {data} done")
+            print(f"Trying to fix the tree after inserting {data}")
+            
+            self.fix_insert(node.left)
+            
+            print("Fixing done\n")
+
+
+        elif data > node.data:
+            node.right = self.insert_main(node.right, data)
+            
+            print(f"\n{data} inserted in Right Branch of {node.data}")
+
+            node.right.parent = node
+            
+            print(f"Parent linking of {data} done")
+            print(f"Trying to fix the tree after inserting {data}")
+
+            self.fix_insert(node.right)
+            
+            print("Fixing done\n")
+
+
+        else:
+            print(f"{data} ALREADY EXIST !!!")
+            return node
+        '''
+        p_node = None
+
+        while node != None:
+            p_node = node
+            if data < node.data:
+                node = node.left
+            elif data > node.data:
+                node = node.right
+            else:
+                print(f"{data} ALREADY EXIST !!!")
+                return
+        
+        node = rb_Node(data)
+        node.parent = p_node
+
+        if p_node is None:
+            self.root = node
+            node.color = 0
+            return
+        elif node.data < p_node.data:
+            p_node.left = node
+        else:
+            p_node.right = node
+
+        if node.parent.parent is None:
+            return
+
+        self.fix_insert(node)        
+        return
+        
+
+        
+
+    def insert(self, data):
+        self.insert_main(self.root, data)
+        self.root.color = 0
+'''
 
