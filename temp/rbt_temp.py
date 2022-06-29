@@ -1,3 +1,11 @@
+#  ----------
+# ### RULES ###
+#  ----------
+# 1. A NODE ID EITHER RED OR BLACK
+# 2. THE ROOT IS ALWAYS BLACK
+# 3. A RED NODE ALWAYS HAS BLACK CHILDERN
+# 4. BLACK NODE FROM ROOT HAS TO BE SAME IN EACH (SUB)TREE
+
 class rb_Node:
     def __init__(self, data):
         self.data = data
@@ -154,7 +162,7 @@ class RBT(Tree):
         #     NODE     [SUB]
         #    /    \     
         # [SUB]   TEMP2
-        
+
         temp1 = node.right
         print(temp1)
         temp2 = temp1.left
@@ -192,18 +200,20 @@ class RBT(Tree):
             node.left = self.insert_main(node.left, data)
 
             if node.left: # IF NODE.LEFT IS NONE i.e. IF ITS EMPTY, IT WILL NOT GO INTO THE IF BLOCK
-                if node.left.left:
-                    if node.left.left.color == 1:
-                        node.left.color = 0
-                        node.color = 1
-                        node = self.rotate_right(node)
-                else :
-                    if node.left.right:
-                        if node.left.right.color == 1:
-                            node.left = self.rotate_left(node.left)
-                        node.left.color = 0
-                        node.color = 1
-                        node = self.rotate_right(node)
+                if node.left.color == 1:
+                    
+                    if node.left.left: # LEFT GRANDCHILD
+                        if node.left.left.color == 1:
+                            node.left.color = 0
+                            node.color = 1
+                            node = self.rotate_right(node)
+                    else :
+                        if node.left.right: # RIGHT GRANDCHILD
+                            if node.left.right.color == 1:
+                                node.left = self.rotate_left(node.left)
+                            node.left.color = 0
+                            node.color = 1
+                            node = self.rotate_right(node)
 
 
         elif data > node.data:
@@ -218,19 +228,20 @@ class RBT(Tree):
             node.right = self.insert_main(node.right, data)
 
             if node.right:
-                if node.right.right:
-                    if node.right.right.color == 1:
-                        node.right.color = 0
-                        node.color = 1
-                        node = self.rotate_left(node)
-                else:
-                    if node.right.left:
-                        if node.right.left.color == 1:
-                            node.right = self.rotate_right(node.right)
-                        node.right.color = 0
-                        node.color = 1
-                        node = self.rotate_left(node)
-        
+                if node.right.color == 1:
+                    if node.right.right:
+                        if node.right.right.color == 1:
+                            node.right.color = 0
+                            node.color = 1
+                            # node = self.rotate_left(node)
+                    else:
+                        if node.right.left:
+                            if node.right.left.color == 1:
+                                node.right = self.rotate_right(node.right)
+                            node.right.color = 0
+                            node.color = 1
+                            node = self.rotate_left(node)
+            
         
         if node is self.root:
             self.root.color = 0
@@ -240,13 +251,25 @@ class RBT(Tree):
         self.root = root.insert_main(self.root, data)
 
 
+import random
+import time
+
 if __name__ == "__main__":
     root = RBT()
-    while True:
-        # try:
-            root.insert(int(input("ENTER DATA TO INSERT : ")))
-            root.print_tree()
-        # except:
-            # break
-    root.print_tree()
+    testcases = 20
+    l = [random.randint(0,99) for i in range(testcases)]
+
+    for i in l:
+        root.insert(i)
+        root.print_tree()
+        time.sleep(1)
+
+    
+    # while True:
+    #     # try:
+    #         root.insert(int(input("ENTER DATA TO INSERT : ")))
+    #         root.print_tree()
+    #     # except:
+    #         # break
+    # root.print_tree()
     # pass
