@@ -233,7 +233,7 @@ class RBT(Tree):
                         if node.right.right.color == 1:
                             node.right.color = 0
                             node.color = 1
-                            # node = self.rotate_left(node)
+                            node = self.rotate_left(node)
                     else:
                         if node.right.left:
                             if node.right.left.color == 1:
@@ -244,11 +244,12 @@ class RBT(Tree):
             
         
         if node is self.root:
-            self.root.color = 0
+            node.color = 0
         return node
     
     def insert(self, data):
         self.root = root.insert_main(self.root, data)
+        self.root.color = 0
 
 
 import random
@@ -256,7 +257,7 @@ import time
 
 if __name__ == "__main__":
     root = RBT()
-    testcases = 20
+    testcases = 30
     l = [random.randint(0,99) for i in range(testcases)]
 
     for i in l:
@@ -272,4 +273,4 @@ if __name__ == "__main__":
     #     # except:
     #         # break
     # root.print_tree()
-    # pass
+    # # pass
