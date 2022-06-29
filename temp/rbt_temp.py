@@ -109,8 +109,31 @@ class RBT(Tree):
         return False # SAFE
 
     def rotate_right(self, node):
+        # INITIALLY
+        #          NODE
+        #         /     \
+        #     TEMP1     [SUB]
+        #     /   \
+        #  [SUB]  TEMP2
+
+        # AFTER ROTATION 
+        #         TEMP1
+        #         /     \
+        #     [SUB]     NODE
+        #              /   \
+        #           TEMP2   [SUB]
+
         temp1 = node.left
+        print(temp1)
         temp2 = temp1.right
+        
+        # if temp1:
+        #     temp2 = temp1.right
+        #     temp1.right = node
+
+        # else:
+        #     temp2 = None
+
 
         temp1.right = node
         node.left = temp2
@@ -118,8 +141,30 @@ class RBT(Tree):
         return temp1
     
     def rotate_left(self, node):
+        # INITIALLY
+        #          NODE
+        #         /    \
+        #     [SUB]    TEMP1
+        #              /   \
+        #           TEMP2   [SUB]
+
+        # AFTER ROTATION 
+        #         TEMP1
+        #         /   \
+        #     NODE     [SUB]
+        #    /    \     
+        # [SUB]   TEMP2
+        
         temp1 = node.right
+        print(temp1)
         temp2 = temp1.left
+        
+        # if temp1:
+        #     temp2 = temp1.left
+        #     temp1.left = node
+
+        # else:
+        #     temp2 = None
 
         temp1.left = node
         node.right = temp2
@@ -139,7 +184,7 @@ class RBT(Tree):
             if node.left == None:
                 node.left = rb_Node(data)
 
-            if self.is_red_light_zone(node):
+            elif self.is_red_light_zone(node):
                 node.left.color = 0
                 node.right.color = 0
                 node.color = 1
@@ -149,7 +194,7 @@ class RBT(Tree):
             if node.left: # IF NODE.LEFT IS NONE i.e. IF ITS EMPTY, IT WILL NOT GO INTO THE IF BLOCK
                 if node.left.left:
                     if node.left.left.color == 1:
-                        node.left = 0
+                        node.left.color = 0
                         node.color = 1
                         node = self.rotate_right(node)
                 else :
@@ -165,7 +210,7 @@ class RBT(Tree):
             if node.right == None:
                 node.right = rb_Node(data)
             
-            if self.is_red_light_zone(node):
+            elif self.is_red_light_zone(node):
                 node.right.color = 0
                 node.left.color = 0
                 node.color = 1
@@ -173,19 +218,22 @@ class RBT(Tree):
             node.right = self.insert_main(node.right, data)
 
             if node.right:
-                if node.right.left:
-                    if node.right.left.color == 1:
-                        node.right = 0
+                if node.right.right:
+                    if node.right.right.color == 1:
+                        node.right.color = 0
                         node.color = 1
                         node = self.rotate_left(node)
                 else:
-                    if node.right.right:
-                        if node.right.right.color == 1:
+                    if node.right.left:
+                        if node.right.left.color == 1:
                             node.right = self.rotate_right(node.right)
                         node.right.color = 0
                         node.color = 1
                         node = self.rotate_left(node)
-
+        
+        
+        if node is self.root:
+            self.root.color = 0
         return node
     
     def insert(self, data):
