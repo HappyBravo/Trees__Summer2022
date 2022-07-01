@@ -6,16 +6,22 @@
 # 3. A RED NODE ALWAYS HAS BLACK CHILDERN
 # 4. BLACK NODE FROM ROOT HAS TO BE SAME IN EACH (SUB)TREE
 
+
+class NullNode:
+    def __init__(self) :
+        self.data = None
+        self.left = None
+        self.right = None
+        self.parent = None
+        self.color = 0
+
 class rb_Node:
     def __init__(self, data):
         self.data = data
-        self.left = self.NIL()
-        self.right = self.NIL()
-        self.parent = self.NIL()
+        self.left = NullNode()
+        self.right = NullNode()
+        self.parent = None
         self.color = 1
-
-    def NIL(self):
-        self.color = 0
     
     def is_red(self):
         if self:
@@ -33,6 +39,9 @@ class Tree:
         
         while node and node.data != data:
             # temp = node
+            if node.data is None:
+                print("NOT FOUND!!!")
+                return node
             if data < node.data:
                 node = node.left
             else:
@@ -69,7 +78,7 @@ class Tree:
     def height(self):
         return self.height_main(self.root)
 
-    def _print_tree(self, node, is_left, offset, depth, s):
+    def _print_tree(self, node, is_left, offset, depth, s, rbt_nil=False):
         b = "" #[" " for i in range(20)]
         width = 5
         if node is None:
@@ -80,15 +89,20 @@ class Tree:
             b = f"({node.data:03d}, {node.height:02d})"
         elif hasattr(node, 'color'):
             width = 8
-            b = f"({node.data:03d}, {node.color})" # RED = 1, BLACK = 0
+            if node.data is None:
+                if rbt_nil:
+                    b = f"(NIL, {node.color})" # RED = 1, BLACK = 0
+                else:
+                    return 0
+            else:
+                b = f"({node.data:03d}, {node.color})" # RED = 1, BLACK = 0
         else:
             b = f"({node.data:03d})"
         
         b = list(b)
         # print(len(b))
-
-        left  = self._print_tree(node.left,  1, offset,            depth+1, s)
-        right = self._print_tree(node.right, 0, offset+left+width, depth+1, s)
+        left  = self._print_tree(node.left,  1, offset,            depth+1, s, rbt_nil)
+        right = self._print_tree(node.right, 0, offset+left+width, depth+1, s, rbt_nil)
 
 
         for i in range(width):
@@ -110,19 +124,19 @@ class Tree:
 
         return left+right+width
     
-    def print_tree_main(self, node):
+    def print_tree_main(self, node, rbt_nil=False):
         h = self.height()
         # print(h)
         s = [[" " for i in range(255)] for j in range(2*h)] # BUFFER STRING
         # print(s)
 
-        self._print_tree(node, 0, 0, 0, s)
+        self._print_tree(node, 0, 0, 0, s, rbt_nil)
 
         for i in range(2*h):
             print("".join(s[i]))
 
-    def print_tree(self):
-        self.print_tree_main(self.root)
+    def print_tree(self, rbt_nil=False):
+        self.print_tree_main(self.root, rbt_nil)
         print()
 
 
@@ -224,40 +238,62 @@ class RBT(Tree):
             temp2.parent = node
 
         return temp1
-    
+
+    def cmp(self, data1, data2) -> int:
+        print(f"{data1}, {data2}")
+        if data1 is None and data2 is None:
+            print("BOTH ARE NONE")
+            return 0
+        elif data2 is None and data1 is not None:
+            return -1
+        elif data1 is None and data2 is not None:
+            return 1
+        elif data1 < data2 :
+            return 1
+        elif data1 > data2:
+            return -1
+        elif data1 == data2:
+            return 0
+
 
     def insert_main(self, node, data):
+        if node is not None:
+            comp = self.cmp(node.data, data)
+
         if node == None:
             node = rb_Node(data)
             node.parent = None
             node.color = 0 # FOR ROOT.
             return node
-        elif data == node.data:
+        # elif data == node.data:
+        elif comp == 0:
             print(f"{data} already exist.")
             return node
-        elif data < node.data:
-            if node.left == None:
+        elif comp == -1:
+            if node.left.data == None:
                 node.left = rb_Node(data)
+                # node.left.data = data
                 node.left.parent = node
 
             elif self.is_red_light_zone(node):
                 node.left.color = 0
                 node.right.color = 0
                 node.color = 1
-
+            
+            # if node.left is not None and node.left.data is not None:
             node.left = self.insert_main(node.left, data)
             node.left.parent = node
 
-            if node.left: # IF NODE.LEFT IS NONE i.e. IF ITS EMPTY, IT WILL NOT GO INTO THE IF BLOCK
+            if node.left.data: # IF NODE.LEFT IS NONE i.e. IF ITS EMPTY, IT WILL NOT GO INTO THE IF BLOCK
                 if node.left.color == 1:
                     
-                    if node.left.left: # LEFT GRANDCHILD
+                    if node.left.left.data: # LEFT GRANDCHILD
                         if node.left.left.color == 1:
                             node.left.color = 0
                             node.color = 1
                             node = self.rotate_right(node)
                     else :
-                        if node.left.right: # RIGHT GRANDCHILD
+                        if node.left.right.data: # RIGHT GRANDCHILD
                             if node.left.right.color == 1:
                                 node.left = self.rotate_left(node.left)
                             node.left.color = 0
@@ -265,9 +301,10 @@ class RBT(Tree):
                             node = self.rotate_right(node)
 
 
-        elif data > node.data:
-            if node.right == None:
+        elif comp == 1:
+            if node.right.data == None:
                 node.right = rb_Node(data)
+                # node.right.data = data
                 node.right.parent = node
             
             elif self.is_red_light_zone(node):
@@ -275,18 +312,19 @@ class RBT(Tree):
                 node.left.color = 0
                 node.color = 1
 
+            # if node.right is not None and node.right.data is not None:
             node.right = self.insert_main(node.right, data)
             node.right.parent = node
 
-            if node.right:
+            if node.right.data:
                 if node.right.color == 1:
-                    if node.right.right:
+                    if node.right.right.data:
                         if node.right.right.color == 1:
                             node.right.color = 0
                             node.color = 1
                             node = self.rotate_left(node)
                     else:
-                        if node.right.left:
+                        if node.right.left.data:
                             if node.right.left.color == 1:
                                 node.right = self.rotate_right(node.right)
                             node.right.color = 0
@@ -301,10 +339,16 @@ class RBT(Tree):
     def insert(self, data):
         self.root = self.insert_main(self.root, data)
         self.root.color = 0
- 
-<--------------------------------------REMOVE FUNCION NOT COMPLETE YET------------------------------------------->
+
+    # <---------------------------------------->
+    def rbt_minValueNode(self, root):
+        temp = root
+        while temp.left is not None and temp.left.data is not None:
+            temp = temp.left
+        return temp
+
     def transplant(self, node1, node2):
-        print(node1, node2)
+        print(f"Transplanting ({node1, node2})")
         if node1.parent is None:
             self.root = node2
         elif node1 == node1.parent.left:
@@ -315,14 +359,18 @@ class RBT(Tree):
             node2.parent = node1.parent 
 
     def remove_fixup(self, node):
+        # if node is None:
+            # node = self.ValueNode(self.root)
+        print(f"--- FIXING {node.data, node.color}")
         while node != self.root and node.color == 0:
+            print("loop starts")
             if node == node.parent.left:
                 uncle = node.parent.right
                 if uncle.color == 1:
                     uncle.color = 0
                     node.parent.color = 1
                     node.parent = self.rotate_left(node.parent)
-                    # uncle = node.parent.right # <---- CAUTION
+                    uncle = node.parent.right # <---- CAUTION
                 if uncle.left.color == 0 and uncle.right.color == 0:
                     uncle.color = 1
                     node = node.parent
@@ -332,7 +380,7 @@ class RBT(Tree):
                         uncle.left.color = 0
                         uncle.color = 1
                         uncle = self.rotate_right(uncle)
-                        # uncle = node.parent.right # <---- CAUTION
+                        uncle = node.parent.right # <---- CAUTION
                     uncle.color = node.parent.color
                     node.parent.color = 0
                     uncle.right.color = 0
@@ -344,7 +392,7 @@ class RBT(Tree):
                     uncle.color = 0
                     node.parent.color = 1
                     node.parent = self.rotate_right(node.parent)
-                    # uncle = node.parent.left # <---- CAUTION
+                    uncle = node.parent.left # <---- CAUTION
                 if  uncle.right.color == 0 and uncle.left.color == 0 :
                     uncle.color = 1
                     node = node.parent
@@ -353,29 +401,32 @@ class RBT(Tree):
                         uncle.right.color = 0
                         uncle.color = 1
                         uncle = self.rotate_left(uncle)
-                        # uncle = node.parent.left # <---- CAUTION
+                        uncle = node.parent.left # <---- CAUTION
                     uncle.color = node.parent.color
                     node.parent.color = 0
                     uncle.left.color = 0
                     node.parent = self.rotate_right(node.parent)
                     node = self.root
+            print("loop ends")
+        print("Out of loop")
         node.color = 0
-                        
-    
+
     def remove_main(self, node):
+        print(f"Removing {node.data, node.color}")
         original_color = node.color
-        if node.left is None:
+        if node.left.data is None:
             temp = node.right
             self.transplant(node, node.right)
-        elif node.right is None:
+        elif node.right.data is None:
             temp = node.left
             self.transplant(node, node.left)
         
         else:
-            inorder_Successor = self.minValueNode(node.right)
+            inorder_Successor = self.rbt_minValueNode(node.right)
             original_color = inorder_Successor.color
 
             temp = inorder_Successor.right
+            # if temp is None
             if inorder_Successor.parent == node:
                 if temp is not None:
                     temp.parent = node.right
@@ -389,31 +440,37 @@ class RBT(Tree):
             inorder_Successor.color = node.color
 
         if original_color == 0:
+            print("TRYING TO FIX TREE")
+            # if temp is not None:
             self.remove_fixup(temp)
+            print("TREE FIXING DONE")
 
     def remove(self, data):
         if self.root:
             node_to_delete = self.search(data)
-            if node_to_delete:
+            if node_to_delete.data is not None:
                 self.remove_main(node_to_delete)
         else:
             print("TREE DOES NOT EXIST!!!")
             return None
-<--------------------------------------------------------------------------------------------------->        
+    # < ------------------------------------------ >    
 
 import random
 import time
 
 if __name__ == "__main__":
     root = RBT()
-    testcases = 7
+    testcases = int(input("Enter number of nodes : "))
+    nil = bool(int(input("Want NILL nodes ? (1/0) : ")))
+
     l = [random.randint(0,99) for i in range(testcases)]
+    print(l)
 
     for i in l:
         root.insert(i)
         # root.print_tree()
         # time.sleep(1)
-    root.print_tree()
+    root.print_tree(rbt_nil=nil)
     
 
     
@@ -425,8 +482,8 @@ if __name__ == "__main__":
     #         # break
     # root.print_tree()
     # # pass
-    # print("----REMOVING----")
+    print("----REMOVING----")
     while True:
         root.remove(int(input("Enter number to remove : ")))
-        root.print_tree()
+        root.print_tree(rbt_nil=nil)
 
