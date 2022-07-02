@@ -172,14 +172,55 @@ class RBT(Tree):
         
         return False # SAFE
     
-#     def is_black_light_zone(self, node):
-#         if node == None:
-#             return False
-#         elif node.left and node.right:
-#             if not (node.left.color or node.right.color):
-#                 return True # DANGER AHEAD
+    # def is_black_light_zone(self, node):
+    #     if node == None:
+    #         return False
+    #     elif node.left and node.right:
+    #         if not (node.left.color or node.right.color):
+    #             return True # DANGER AHEAD
         
-#         return False # SAFE
+    #     return False # SAFE
+
+
+    # problem was ... the older rotate_left/right was not changing parent.left/right
+    # changing older function can cause error in insert_fixup, so simply made new rotation function for removing node
+    # 
+    def rotate_left_2(self, node):
+        temp = node.right
+
+        node.right = temp.left
+        if temp.left is not None:
+            temp.left.parent = node
+        
+        temp.parent = node.parent
+        if node.parent is None:
+            self.root = temp
+        elif node == node.parent.left:
+            node.parent.left = temp
+        else:
+            node.parent.right = temp
+
+        temp.left = node
+        node.parent = temp
+        
+    def rotate_right_2(self, node):
+        temp = node.left
+
+        node.left = temp.right
+        if temp.right is not None:
+            temp.right.parent = node
+        
+        temp.parent = node.parent
+        if node.parent is None:
+            self.root = temp
+        elif node == node.parent.left:
+            node.parent.left = temp
+        else:
+            node.parent.right = temp
+
+        temp.right = node
+        node.parent = temp
+
 
     def rotate_right(self, node):
         # INITIALLY
@@ -205,7 +246,7 @@ class RBT(Tree):
 
         temp1.parent = parent
         node.parent = temp1
-        if temp2:
+        if temp2.data is not None:
             temp2.parent = node
 
         return temp1
@@ -234,7 +275,7 @@ class RBT(Tree):
 
         temp1.parent = parent
         node.parent = temp1
-        if temp2:
+        if temp2.data is not None:
             temp2.parent = node
 
         return temp1
@@ -292,13 +333,16 @@ class RBT(Tree):
                             node.left.color = 0
                             node.color = 1
                             node = self.rotate_right(node)
+                            # self.rotate_right_2(node)
                     else :
                         if node.left.right.data: # RIGHT GRANDCHILD
                             if node.left.right.color == 1:
                                 node.left = self.rotate_left(node.left)
+                                # self.rotate_left_2(node.left)
                             node.left.color = 0
                             node.color = 1
                             node = self.rotate_right(node)
+                            # self.rotate_right_2(node)
 
 
         elif comp == 1:
@@ -323,13 +367,16 @@ class RBT(Tree):
                             node.right.color = 0
                             node.color = 1
                             node = self.rotate_left(node)
+                            # self.rotate_left_2(node)
                     else:
                         if node.right.left.data:
                             if node.right.left.color == 1:
                                 node.right = self.rotate_right(node.right)
+                                # self.rotate_right_2(node.right)
                             node.right.color = 0
                             node.color = 1
                             node = self.rotate_left(node)
+                            # self.rotate_left_2(node)
             
         
         if node is self.root:
@@ -362,50 +409,76 @@ class RBT(Tree):
         # if node is None:
             # node = self.ValueNode(self.root)
         print(f"--- FIXING {node.data, node.color}")
+
         while node != self.root and node.color == 0:
             print("loop starts")
-            if node == node.parent.left:
-                uncle = node.parent.right
-                if uncle.color == 1:
-                    uncle.color = 0
+            if node == node.parent.left: # IF THE NODE IS IN THE LEFT
+                sibling = node.parent.right
+                
+                if sibling.color == 1: # CASE 1
+                    sibling.color = 0
                     node.parent.color = 1
-                    node.parent = self.rotate_left(node.parent)
-                    uncle = node.parent.right # <---- CAUTION
-                if uncle.left.color == 0 and uncle.right.color == 0:
-                    uncle.color = 1
+                    print(f"left rotating {node.parent.data}")
+                    # node.parent = self.rotate_left(node.parent) 
+                    self.rotate_left_2(node.parent)
+                    print("left rotation done")
+                    sibling = node.parent.right # <---- CAUTION
+                
+                if sibling.left.color == 0 and sibling.right.color == 0: # CASE 2
+                    sibling.color = 1
                     node = node.parent
 
-                else:
-                    if uncle.right.color == 0:
-                        uncle.left.color = 0
-                        uncle.color = 1
-                        uncle = self.rotate_right(uncle)
-                        uncle = node.parent.right # <---- CAUTION
-                    uncle.color = node.parent.color
+                else: # CASE 3
+                    if sibling.right.color == 0:
+                        sibling.left.color = 0
+                        sibling.color = 1
+                        print(f"right rotating {sibling.data}")
+                        # sibling = self.rotate_right(sibling)
+                        self.rotate_right_2(sibling)
+                        print("right rotation done")
+                        sibling = node.parent.right # <---- CAUTION
+                    
+                    # CASE 4
+                    sibling.color = node.parent.color
                     node.parent.color = 0
-                    uncle.right.color = 0
-                    node.parent = self.rotate_left(node.parent)
+                    sibling.right.color = 0
+                    print(f"left rotating {node.parent.data}")
+                    # node.parent = self.rotate_left(node.parent)
+                    self.rotate_left_2(node.parent)
+                    print("left rotation done")
                     node = self.root
-            else:
-                uncle = node.parent.left
-                if uncle.color == 1:
-                    uncle.color = 0
+
+            else: # IF THE NODE IS ON THE RIGHT
+                sibling = node.parent.left
+                
+                if sibling.color == 1: #CASE 1
+                    sibling.color = 0
                     node.parent.color = 1
-                    node.parent = self.rotate_right(node.parent)
-                    uncle = node.parent.left # <---- CAUTION
-                if  uncle.right.color == 0 and uncle.left.color == 0 :
-                    uncle.color = 1
+                    print(f"rightt rotating {node.parent.data}")
+                    # node.parent = self.rotate_right(node.parent)
+                    self.rotate_right_2(node.parent)
+                    print("right rotation done")
+                    sibling = node.parent.left # <---- CAUTION
+
+                if  sibling.right.color == 0 and sibling.left.color == 0 : # CASE 2
+                    sibling.color = 1
                     node = node.parent
                 else:
-                    if uncle.left.color == 0:
-                        uncle.right.color = 0
-                        uncle.color = 1
-                        uncle = self.rotate_left(uncle)
-                        uncle = node.parent.left # <---- CAUTION
-                    uncle.color = node.parent.color
+                    if sibling.left.color == 0:
+                        sibling.right.color = 0
+                        sibling.color = 1
+                        print(f"left rotating {sibling.data}")
+                        # sibling = self.rotate_left(sibling)
+                        self.rotate_left_2(sibling)
+                        print("left rotation done")
+                        sibling = node.parent.left # <---- CAUTION
+                    sibling.color = node.parent.color
                     node.parent.color = 0
-                    uncle.left.color = 0
-                    node.parent = self.rotate_right(node.parent)
+                    sibling.left.color = 0
+                    print(f"right rotating {node.parent.data}")
+                    # node.parent = self.rotate_right(node.parent)
+                    self.rotate_right_2(node.parent)
+                    print("right rotation done")
                     node = self.root
             print("loop ends")
         print("Out of loop")
