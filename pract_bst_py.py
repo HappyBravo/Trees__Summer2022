@@ -14,7 +14,7 @@ if __name__ == "__main__":
     root3 = None
     root3 = bst.RBT()
 
-    n = 3
+    n = 15
 
     arr = [random.randint(0, 50) for i in range(n)]
     print(arr)
@@ -51,25 +51,25 @@ if __name__ == "__main__":
     # # root = None
 
     # # root.print_tree()
-    '''
     while int(input("Do you want to remove ? (1:YES 0: NO)")):   
         d = int(input("Enter data to remove : "))
         # root.remove(d)
         # root.print_tree()
         # root.print(traversal_type="preorder")
 
-        root2.remove(d)
-        root2.print_tree()
+        # root2.remove(d)
+        # root2.print_tree()
+        root3.remove(d)
+        root3.print_tree()
 
     # print("---SEARCHING---")
     # while int(input("search ? : 1 or 0 : ")):
     #     index = root.search(int(input("Enter data to search : ")))
     #     print(f"Found {index.data}.") if index != None else print()
        
-    print("\n\n\t ---- AVL TREE ---- \n\n")
-    # root2 = None
-    # root2 = bst.AVL()
-    # root2.insert(1)
-    root2.print_tree()
-    root2.print()
-    '''
+    # print("\n\n\t ---- AVL TREE ---- \n\n")
+    # # root2 = None
+    # # root2 = bst.AVL()
+    # # root2.insert(1)
+    # root2.print_tree()
+    # root2.print()
