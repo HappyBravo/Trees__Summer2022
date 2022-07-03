@@ -7,4 +7,4 @@ ___
 |------|--------|----|
 | AVL Tree | ✓ | ✓ |
 | Binary Search Tree | ✓ | ✓ |
-| Red-Black Tree | ✘ | ✘ |
+| Red-Black Tree | ✓ | ✘ |
