@@ -15,14 +15,26 @@ class avl_Node():
         self.right = None
         self.height = 1
 
- 
-# class rb_Node():
-#     def __init__(self, data):
-#         self.data = data
-#         self.left = None
-#         self.right = None
-#         self.parent = None
-#         self.color = 1 # 1 : RED, 0 : BLACK
+class NullNode:
+    def __init__(self) :
+        self.data = None
+        self.left = None
+        self.right = None
+        self.parent = None
+        self.color = 0
+
+class rb_Node:
+    def __init__(self, data):
+        self.data = data
+        self.left = NullNode()
+        self.right = NullNode()
+        self.parent = None
+        self.color = 1
+    
+    def is_red(self):
+        if self:
+            return (self.color == 1)
+        return False
 
 class Tree:
     travel_inorder = "INORDER"
@@ -106,7 +118,7 @@ class Tree:
     def height(self):
         return self.height_main(self.root)
 
-    def _print_tree(self, node, is_left, offset, depth, s):
+    def _print_tree(self, node, is_left, offset, depth, s, rbt_nil=False):
         b = "" #[" " for i in range(20)]
         width = 5
         if node is None:
@@ -117,15 +129,20 @@ class Tree:
             b = f"({node.data:03d}, {node.height:02d})"
         elif hasattr(node, 'color'):
             width = 8
-            b = f"({node.data:03d}, {node.color})" # RED = 1, BLACK = 0
+            if node.data is None:
+                if rbt_nil:
+                    b = f"(NIL, {node.color})" # RED = 1, BLACK = 0
+                else:
+                    return 0
+            else:
+                b = f"({node.data:03d}, {node.color})" # RED = 1, BLACK = 0
         else:
             b = f"({node.data:03d})"
         
         b = list(b)
         # print(len(b))
-
-        left  = self._print_tree(node.left,  1, offset,            depth+1, s)
-        right = self._print_tree(node.right, 0, offset+left+width, depth+1, s)
+        left  = self._print_tree(node.left,  1, offset,            depth+1, s, rbt_nil)
+        right = self._print_tree(node.right, 0, offset+left+width, depth+1, s, rbt_nil)
 
 
         for i in range(width):
@@ -147,20 +164,21 @@ class Tree:
 
         return left+right+width
     
-    def print_tree_main(self, node):
+    def print_tree_main(self, node, rbt_nil=False):
         h = self.height()
         # print(h)
         s = [[" " for i in range(255)] for j in range(2*h)] # BUFFER STRING
         # print(s)
 
-        self._print_tree(node, 0, 0, 0, s)
+        self._print_tree(node, 0, 0, 0, s, rbt_nil)
 
         for i in range(2*h):
             print("".join(s[i]))
 
-    def print_tree(self):
-        self.print_tree_main(self.root)
+    def print_tree(self, rbt_nil=False):
+        self.print_tree_main(self.root, rbt_nil)
         print()
+
 
 
 
@@ -234,27 +252,7 @@ class BST(Tree):
 
     def remove(self, data):
         self.root = self.remove_main(self.root, data)
-        # return self
-    
-    # def search(self, data):
-    #     # temp = None
-    #     node = self.root
-        
-    #     if node is None:
-    #         return None
-        
-    #     while node and node.data != data:
-    #         # temp = node
-    #         if data < node.data:
-    #             node = node.left
-    #         else:
-    #             node = node.right
-    #     if node == None:
-    #         print("NOT FOUND!!!")
-    #         return node
-    #     else :
-    #         return node
-
+      
 class AVL(Tree):
     def __init__(self):
         self.root = None
@@ -432,176 +430,400 @@ class AVL(Tree):
     def remove(self, data):
         self.root = self.remove_main(self.root, data)
 
-
-'''
-RECOLORING AFTER INSERTION NEED SOME BUG FIXING
-
 class RBT(Tree):
     def __init__(self):
         self.root = None
+        # self.nil = None
 
-    def rotate_left(self, node):
-        temp1 = node.right
-        node.right = temp1.left
-
-        if temp1.left is not None:
-            temp1.parent.left = node
-        
-        temp1.parent = node.parent
-
+    def sibling(self, node):
         if node.parent is None:
-            # pass
-            self.root = temp1
-        elif node is node.parent.left:
-            node.parent.left = temp1
+            return None
+        if node is node.parent.right:
+            return node.parent.left
         else:
-            node.parent.right = temp1
-        
-        temp1.left = node
-        node.parent = temp1
+            return node.parent.right
 
-        return temp1
-        # pass
+    def uncle(self, node):
+        if node.parent == None:
+            return None
+        return self.sibling(node.parent)
+
+    def has_children(self, node):
+        if node.left or node.right:
+            return True
+        return False
+
+    def is_red_light_zone(self, node):
+        if node == None:
+            return False
+        elif node.left and node.right:
+            if node.left.color and node.right.color:
+                return True # DANGER AHEAD
+        
+        return False # SAFE
+    
+    # def is_black_light_zone(self, node):
+    #     if node == None:
+    #         return False
+    #     elif node.left and node.right:
+    #         if not (node.left.color or node.right.color):
+    #             return True # DANGER AHEAD
+        
+    #     return False # SAFE
 
     def rotate_right(self, node):
+        # INITIALLY
+        #          NODE
+        #         /     \
+        #     TEMP1     [SUB]
+        #     /   \
+        #  [SUB]  TEMP2
+
+        # AFTER ROTATION 
+        #         TEMP1
+        #         /     \
+        #     [SUB]     NODE
+        #              /   \
+        #           TEMP2   [SUB]
+
+        parent = node.parent
         temp1 = node.left
-        node.left = temp1.right
-
-        if temp1.right is not None:
-            temp1.right.parent = node
-        
-        temp1.parent = node.parent
-
-        if node.parent is None:
-            self.root = temp1
-            pass
-        elif node is node.parent.left:
-            node.parent.right = node
-        else:
-            node.parent.left = node
+        temp2 = temp1.right
 
         temp1.right = node
+        node.left = temp2
+
+        temp1.parent = parent
         node.parent = temp1
+        if temp2.data is not None:
+            temp2.parent = node
 
         return temp1
-        # pass
     
-    def fix_insert(self, node):
-        while node.parent.color == 1: # IF THE COLOR IS BLACK, MEANS ALL PROPERTIES ARE SATISFIED
-            print("-:_", end="")
-            if node.parent == node.parent.parent.right :
-                uncle = node.parent.parent.left # UNCLE
-                if uncle != None:
-                    if uncle.color == 1:  # IF PARENT AND UNCLE IS RED, SET BOTH AS BLACK
-                        node.parent.color = 0
-                        uncle.color = 0
-                        node.parent.parent.color = 1 # SET GRANDFATHER COLOR RED
-                        node = node.parent.parent # MOVING THE POINTER TO GRANDPARENT FOR FIXING TREE ABOVE
-                else:
-                    if node == node.parent.left:
-                        node = node.parent
-                        self.rotate_right(node)
-                    node.parent.color = 0
-                    node.parent.parent.color = 1
-                    self.rotate_left(node.parent.parent)
-            else:
-                uncle = node.parent.parent.right # UNCLE
-                if uncle != None:
-                    if uncle.color == 1 :
-                        node.parent.color = 0
-                        uncle.color = 0
-                        node.parent.parent.color = 1
-                        node = node.parent.parent
-                else:
-                    if node == node.parent.left:
-                        node = node.parent
-                        self.rotate_left(node)
-                    node.parent.color = 0
-                    node.parent.parent.color = 1
-                    self.rotate_right(node.parent.parent)
-            if node == self.root:
-                break
-        self.root.color = 0
+    def rotate_left(self, node):
+        # INITIALLY
+        #          NODE
+        #         /    \
+        #     [SUB]    TEMP1
+        #              /   \
+        #           TEMP2   [SUB]
+
+        # AFTER ROTATION 
+        #         TEMP1
+        #         /   \
+        #     NODE     [SUB]
+        #    /    \     
+        # [SUB]   TEMP2
+
+        parent = node.parent
+        temp1 = node.right
+        temp2 = temp1.left
+
+        temp1.left = node
+        node.right = temp2
+
+        temp1.parent = parent
+        node.parent = temp1
+        if temp2.data is not None:
+            temp2.parent = node
+
+        return temp1
+
+    # problem was ... the older rotate_left/right was not changing parent.left/right
+    # changing older function can cause error in insert_fixup, so simply made new rotation function for removing node
+    # 
+    def rotate_left_2(self, node):
+        temp = node.right
+
+        node.right = temp.left
+        if temp.left is not None:
+            temp.left.parent = node
+        
+        temp.parent = node.parent
+        if node.parent is None:
+            self.root = temp
+        elif node == node.parent.left:
+            node.parent.left = temp
+        else:
+            node.parent.right = temp
+
+        temp.left = node
+        node.parent = temp
+        
+    def rotate_right_2(self, node):
+        temp = node.left
+
+        node.left = temp.right
+        if temp.right is not None:
+            temp.right.parent = node
+        
+        temp.parent = node.parent
+        if node.parent is None:
+            self.root = temp
+        elif node == node.parent.left:
+            node.parent.left = temp
+        else:
+            node.parent.right = temp
+
+        temp.right = node
+        node.parent = temp
 
 
+    def cmp(self, data1, data2) -> int:
+        # print(f"{data1}, {data2}")
+        if data1 is None and data2 is None:
+            print("BOTH ARE NONE")
+            return 0
+        elif data2 is None and data1 is not None:
+            return -1
+        elif data1 is None and data2 is not None:
+            return 1
+        elif data1 < data2 :
+            return 1
+        elif data1 > data2:
+            return -1
+        elif data1 == data2:
+            return 0
 
-    
+
     def insert_main(self, node, data):
-        '''
-        if node is None:
+        if node is not None:
+            comp = self.cmp(node.data, data)
+
+        if node == None:
             node = rb_Node(data)
-            print(f"\nNew Node made for {data}")
+            node.parent = None
+            node.color = 0 # FOR ROOT.
             return node
+        # elif data == node.data:
+        elif comp == 0:
+            print(f"{data} already exist.")
+            return node
+        elif comp == -1:
+            if node.left.data == None:
+                node.left = rb_Node(data)
+                # node.left.data = data
+                node.left.parent = node
 
-        if data < node.data:
+            elif self.is_red_light_zone(node):
+                node.left.color = 0
+                node.right.color = 0
+                node.color = 1
+            
+            # if node.left is not None and node.left.data is not None:
             node.left = self.insert_main(node.left, data)
-            
-            print(f"\n{data} inserted in Left Branch of {node.data}")
-            
             node.left.parent = node
-            
-            print(f"Parent linking of {data} done")
-            print(f"Trying to fix the tree after inserting {data}")
-            
-            self.fix_insert(node.left)
-            
-            print("Fixing done\n")
+
+            if node.left.data: # IF NODE.LEFT IS NULL NODE IS NONE i.e. IF ITS EMPTY, IT WILL NOT GO INTO THE IF BLOCK
+                if node.left.color == 1:
+                    
+                    if node.left.left.data: # LEFT GRANDCHILD
+                        if node.left.left.color == 1:
+                            node.left.color = 0
+                            node.color = 1
+                            node = self.rotate_right(node)
+                            # self.rotate_right_2(node)
+                    else :
+                        if node.left.right.data: # RIGHT GRANDCHILD
+                            if node.left.right.color == 1:
+                                node.left = self.rotate_left(node.left)
+                                # self.rotate_left_2(node.left)
+                            node.left.color = 0
+                            node.color = 1
+                            node = self.rotate_right(node)
+                            # self.rotate_right_2(node)
 
 
-        elif data > node.data:
+        elif comp == 1:
+            if node.right.data == None:
+                node.right = rb_Node(data)
+                # node.right.data = data
+                node.right.parent = node
+            
+            elif self.is_red_light_zone(node):
+                node.right.color = 0
+                node.left.color = 0
+                node.color = 1
+
+            # if node.right is not None and node.right.data is not None:
             node.right = self.insert_main(node.right, data)
-            
-            print(f"\n{data} inserted in Right Branch of {node.data}")
-
             node.right.parent = node
+
+            if node.right.data:
+                if node.right.color == 1:
+                    if node.right.right.data:
+                        if node.right.right.color == 1:
+                            node.right.color = 0
+                            node.color = 1
+                            node = self.rotate_left(node)
+                            # self.rotate_left_2(node)
+                    else:
+                        if node.right.left.data:
+                            if node.right.left.color == 1:
+                                node.right = self.rotate_right(node.right)
+                                # self.rotate_right_2(node.right)
+                            node.right.color = 0
+                            node.color = 1
+                            node = self.rotate_left(node)
+                            # self.rotate_left_2(node)
             
-            print(f"Parent linking of {data} done")
-            print(f"Trying to fix the tree after inserting {data}")
-
-            self.fix_insert(node.right)
-            
-            print("Fixing done\n")
-
-
-        else:
-            print(f"{data} ALREADY EXIST !!!")
-            return node
-        '''
-        p_node = None
-
-        while node != None:
-            p_node = node
-            if data < node.data:
-                node = node.left
-            elif data > node.data:
-                node = node.right
-            else:
-                print(f"{data} ALREADY EXIST !!!")
-                return
         
-        node = rb_Node(data)
-        node.parent = p_node
-
-        if p_node is None:
-            self.root = node
+        if node is self.root:
             node.color = 0
-            return
-        elif node.data < p_node.data:
-            p_node.left = node
-        else:
-            p_node.right = node
-
-        if node.parent.parent is None:
-            return
-
-        self.fix_insert(node)        
-        return
-        
-
-        
-
+        return node
+    
     def insert(self, data):
-        self.insert_main(self.root, data)
+        self.root = self.insert_main(self.root, data)
         self.root.color = 0
-'''
+
+    # <---------------------------------------->
+    def rbt_minValueNode(self, root):
+        temp = root
+        while temp.left is not None and temp.left.data is not None:
+            temp = temp.left
+        return temp
+
+    def transplant(self, node1, node2):
+        print(f"Transplanting ({node1, node2})")
+        if node1.parent is None:
+            self.root = node2
+        elif node1 == node1.parent.left:
+            node1.parent.left = node2
+        else:
+            node1.parent.right = node2
+        if node2 is not None:
+            node2.parent = node1.parent 
+
+    def remove_fixup(self, node):
+        # print(f"--- FIXING {node.data, node.color}")
+
+        while node != self.root and node.color == 0:
+            print("loop starts")
+            if node == node.parent.left: # IF THE NODE IS IN THE LEFT
+                sibling = node.parent.right
+                
+                if sibling.color == 1: # CASE 1
+                    sibling.color = 0
+                    node.parent.color = 1
+        
+                    # print(f"left rotating {node.parent.data}")
+                    # node.parent = self.rotate_left(node.parent) 
+                    self.rotate_left_2(node.parent)
+                    # print("left rotation done")
+        
+                    sibling = node.parent.right # <---- CAUTION
+                
+                if sibling.left.color == 0 and sibling.right.color == 0: # CASE 2
+                    sibling.color = 1
+                    node = node.parent
+
+                else: # CASE 3
+                    if sibling.right.color == 0:
+                        sibling.left.color = 0
+                        sibling.color = 1
+        
+                        # print(f"right rotating {sibling.data}")
+                        # sibling = self.rotate_right(sibling)
+                        self.rotate_right_2(sibling)
+                        # print("right rotation done")
+        
+                        sibling = node.parent.right # <---- CAUTION
+                    
+                    # CASE 4
+                    sibling.color = node.parent.color
+                    node.parent.color = 0
+                    sibling.right.color = 0
+        
+                    # print(f"left rotating {node.parent.data}")
+                    # node.parent = self.rotate_left(node.parent)
+                    self.rotate_left_2(node.parent)
+                    # print("left rotation done")
+        
+                    node = self.root
+
+            else: # IF THE NODE IS ON THE RIGHT
+                sibling = node.parent.left
+                
+                if sibling.color == 1: #CASE 1
+                    sibling.color = 0
+                    node.parent.color = 1
+        
+                    # print(f"rightt rotating {node.parent.data}")
+                    # node.parent = self.rotate_right(node.parent)
+                    self.rotate_right_2(node.parent)
+                    # print("right rotation done")
+        
+                    sibling = node.parent.left # <---- CAUTION
+
+                if  sibling.right.color == 0 and sibling.left.color == 0 : # CASE 2
+                    sibling.color = 1
+                    node = node.parent
+                else:
+                    if sibling.left.color == 0:
+                        sibling.right.color = 0
+                        sibling.color = 1
+        
+                        # print(f"left rotating {sibling.data}")
+                        # sibling = self.rotate_left(sibling)
+                        self.rotate_left_2(sibling)
+                        # print("left rotation done")
+        
+                        sibling = node.parent.left # <---- CAUTION
+                    sibling.color = node.parent.color
+                    node.parent.color = 0
+                    sibling.left.color = 0
+        
+                    # print(f"right rotating {node.parent.data}")
+                    # node.parent = self.rotate_right(node.parent)
+                    self.rotate_right_2(node.parent)
+                    # print("right rotation done")
+        
+                    node = self.root
+            print("loop ends")
+        print("Out of loop")
+        node.color = 0
+
+    def remove_main(self, node):
+        print(f"Removing {node.data, node.color}")
+        original_color = node.color
+        if node.left.data is None:
+            temp = node.right
+            self.transplant(node, node.right)
+        elif node.right.data is None:
+            temp = node.left
+            self.transplant(node, node.left)
+        
+        else:
+            inorder_Successor = self.rbt_minValueNode(node.right)
+            original_color = inorder_Successor.color
+
+            temp = inorder_Successor.right
+            # if temp is None
+            if inorder_Successor.parent == node:
+                if temp is not None:
+                    temp.parent = node.right
+            else:
+                self.transplant(inorder_Successor, inorder_Successor.right)
+                inorder_Successor.right = node.right
+                inorder_Successor.right.parent = inorder_Successor
+            self.transplant(node, inorder_Successor)
+            inorder_Successor.left = node.left
+            inorder_Successor.left.parent = inorder_Successor
+            inorder_Successor.color = node.color
+
+        if original_color == 0:
+            print("TRYING TO FIX TREE")
+            # if temp is not None:
+            self.remove_fixup(temp)
+            print("TREE FIXING DONE")
+
+    def remove(self, data):
+        if self.root:
+            node_to_delete = self.search(data)
+            if node_to_delete.data is not None:
+                self.remove_main(node_to_delete)
+        else:
+            print("TREE DOES NOT EXIST!!!")
+            return None
+    # < ------------------------------------------ >
 
