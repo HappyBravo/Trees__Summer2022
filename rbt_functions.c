@@ -178,6 +178,143 @@ rb_tree *rb_insert(rb_tree *tree, int data){
 }
 
 
+static rbNode *rb_search(rb_tree *tree, int data){
+    rbNode *temp = tree->root;
+    while(temp != tree->nil){
+        if (data > temp->data)  temp = temp->right;
+        else if (data < temp->data) temp = temp->left;
+        else return temp;
+    }
+    printf("%d DOES NOT EXIST!!!", data);
+    return tree->nil;
+}
+
+static rbNode *rb_minValueNode(rb_tree *tree, rbNode *node){
+    while(node->left != tree->nil) node = node->left;
+    return node;
+}
+
+static void rb_transplant(rb_tree *tree, rbNode *temp1, rbNode *temp2){
+    //    parent
+    //    /   \
+    //       temp1
+    //       /   \
+    //           temp2
+    //           /   \
+
+    //    parent
+    //    /   \
+    //       temp2
+    //       /   \
+    //           temp1
+    //           /   \ 
+
+    if (temp1->parent == tree->nil){
+        tree->root = temp2;
+    }
+    else if (temp1 == temp1->parent->left){
+        temp1->parent->left = temp2;
+    }
+    else{
+        temp1->parent->right = temp2;
+    }
+    temp2->parent = temp1->parent;
+}
+
+static void rb_remove_fixup(rb_tree *tree, rbNode *node){
+
+    while(node != tree->root && node->color == RBT_BLACK){
+        int is_left = node == node->parent->left;
+
+        rbNode *sibling = (is_left) ? node->parent->right:node->parent->left;
+        
+        // CASE 1 : SIBLING IS RED
+        if (sibling->color == RBT_RED){
+            sibling->color = RBT_BLACK;
+            sibling->parent->color = RBT_RED;
+            rb_rotate(tree, sibling->parent, is_left);
+            sibling = (is_left) ? node->parent->right : node->parent->left;
+        }
+        // CASE 2 : SIBLING IS BLACK, BOTH SIBLING'S CHILDREN ARE BLACK
+        if (sibling->left->color == RBT_BLACK && sibling->right->color == RBT_BLACK){
+            sibling->color = RBT_RED;
+            node = node->parent;
+        }
+        else{
+            // CASE 3 : SIBLING IS BLACK, AND NODE'S FAR CHILD IS BLACK
+            if( (is_left && sibling->right->color == RBT_BLACK) ||
+                ((!is_left) && sibling->left->color == RBT_BLACK) ){
+                    if (is_left){
+                        sibling->left->color = RBT_BLACK;
+                    }
+                    else{
+                        sibling->right->color = RBT_BLACK;
+                    }
+                    sibling->color = RBT_RED;
+                    rb_rotate(tree, sibling, !is_left);
+                    sibling = (is_left) ? node->parent->right : node->parent->left;
+                }
+            // CASE 4 : SIBLING BLACK, FAR CHILD IS RED
+            sibling->color = node->parent->color;
+            node->parent->color = RBT_BLACK;
+            if(is_left){
+                sibling->right->color = RBT_BLACK;
+            }
+            else{
+                sibling->left->color = RBT_BLACK;
+            }
+            rb_rotate(tree, node->parent, is_left);
+            node = tree->root;
+        }
+    }
+    node->color = RBT_BLACK;
+}
+
+rb_tree *rb_remove(rb_tree *tree, int data){
+    rbNode *node_to_delete = rb_search(tree, data);
+    rbNode *fix_here;
+    int original_color = node_to_delete->color;
+
+    if (node_to_delete == tree->nil){
+        printf("\n%d DOES NOT EXIST!!!", data);
+        return tree;
+    }
+
+    else if(node_to_delete->left == tree->nil){
+        fix_here = node_to_delete->right;
+        rb_transplant(tree, node_to_delete, fix_here);
+    }
+    else if(node_to_delete->right == tree->nil){
+        fix_here = node_to_delete->left;
+        rb_transplant(tree, node_to_delete, fix_here);
+    }
+    else{
+        rbNode *successor = rb_minValueNode(tree, node_to_delete->right);
+        printf("\nSuccessor = %d", *successor);
+        original_color = successor->color;
+        fix_here = successor->right;
+        if (successor->parent == node_to_delete){
+            fix_here->parent = successor;
+        }
+        else{
+            rb_transplant(tree, successor, successor->right);
+            successor->right = node_to_delete->right;
+            successor->right->parent = successor;
+        }
+        rb_transplant(tree, node_to_delete, successor);
+        successor->left = node_to_delete->left;
+        successor->left->parent = successor;
+        successor->color = node_to_delete->color;
+    }
+    free(node_to_delete);
+
+    if (original_color == RBT_BLACK){
+        rb_remove_fixup(tree, fix_here);
+    }
+    return tree;
+}
+
+
 // %%%%%%%%%% TREE DISPLAY FUNCTION %%%%%%%%%%%%%%
 int rb_height(rb_tree *T, rbNode *root){
   int left = 1;
