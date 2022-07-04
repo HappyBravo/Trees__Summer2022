@@ -138,7 +138,7 @@ static void rb_insert_fixup(rb_tree *tree, rbNode *node){
 rb_tree *rb_insert(rb_tree *tree, int data){
     
     if (tree == NULL){
-        printf("\n>>> TREE DOES NOT EXIST!!!\n>>> MAKING NEW TREE\n");
+        printf("\n>>> TREE DOES NOT EXIST!!!\n>>> MAKING NEW TREE");
         tree = (rb_tree *)malloc(sizeof(rb_tree));
         tree->nil = (rbNode *)malloc(sizeof(rbNode));
         tree->nil->color = 0;
@@ -146,7 +146,7 @@ rb_tree *rb_insert(rb_tree *tree, int data){
         tree->nil->right = tree->nil;
         tree->nil->parent = tree->nil;
         tree->root = tree->nil; 
-        printf("\n>>> TREE MADE!!!\n");
+        printf("\n>>> NEW TREE MADE!!!\n");
     }
     rbNode *new_node;
     rbNode *parent = tree->nil;
@@ -159,7 +159,7 @@ rb_tree *rb_insert(rb_tree *tree, int data){
         else if (data > temp->data) temp = temp->right;
         else{
             printf("\n>>> %d IS ALREADY PRESENT !!!\n", data);
-            return NULL;
+            return tree;
         }
     }
 
@@ -185,7 +185,7 @@ static rbNode *rb_search(rb_tree *tree, int data){
         else if (data < temp->data) temp = temp->left;
         else return temp;
     }
-    printf("%d DOES NOT EXIST!!!", data);
+    printf("\n>>> %d DOES NOT EXIST!!!\n", data);
     return tree->nil;
 }
 
@@ -276,7 +276,7 @@ rb_tree *rb_remove(rb_tree *tree, int data){
     int original_color = node_to_delete->color;
 
     if (node_to_delete == tree->nil){
-        printf("\n%d DOES NOT EXIST!!!", data);
+        // printf("\n%d DOES NOT EXIST!!!", data);
         return tree;
     }
 
@@ -290,7 +290,7 @@ rb_tree *rb_remove(rb_tree *tree, int data){
     }
     else{
         rbNode *successor = rb_minValueNode(tree, node_to_delete->right);
-        printf("\nSuccessor = %d", *successor);
+        // printf("\nSuccessor = %d", *successor);
         original_color = successor->color;
         fix_here = successor->right;
         if (successor->parent == node_to_delete){
@@ -313,7 +313,6 @@ rb_tree *rb_remove(rb_tree *tree, int data){
     }
     return tree;
 }
-
 
 // %%%%%%%%%% TREE DISPLAY FUNCTION %%%%%%%%%%%%%%
 int rb_height(rb_tree *T, rbNode *root){
@@ -397,7 +396,7 @@ int _rb_print_t(rb_tree *T, rbNode *tree, int is_left, int offset, int depth, ch
 void rb_print_t(rb_tree *tree, rbNode *node)
 {
     int h = rb_height(tree, node)*2;
-    printf("\nHeight = %d\n", h);
+    // printf("\nHeight = %d\n", h);
 
     char s[h][512];
 
@@ -412,7 +411,12 @@ void rb_print_t(rb_tree *tree, rbNode *node)
 
 void rb_print_tree(rb_tree *tree){
     // printf("\n\t>>> Printing Tree\n");
-    rb_print_t(tree, tree->root);
+    if ((tree != NULL) && (tree->root != tree->nil))
+        rb_print_t(tree, tree->root);
+    else{
+        printf("\n>>> TREE DOES NOT EXIST!!!\n>>> MAKE NEW TREE AND TRY AGAIN!!!\n\n");
+        return;
+    }
 }
 
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
