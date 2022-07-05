@@ -54,13 +54,13 @@ static rbNode *rb_uncle(rb_tree *tree, rbNode *node){
 }
 
 static void rb_rotate(rb_tree *tree, rbNode *node, int left_or_right){
-     // left_or_right : 0 - ROTATE LEFT
-     //                 1 - ROTATE RIGHT
+     // left_or_right : 1 - ROTATE LEFT
+     //                 0 - ROTATE RIGHT
 
      rbNode *new_node = (left_or_right) ? node->right : node->left;
 
      if (left_or_right){
-        //  printf("\nright");
+         // printf("\nRotating %d Right\n", node->data);
          node->right = new_node->left;
          if(node->right != tree->nil){
              node->right->parent = node;
@@ -68,6 +68,8 @@ static void rb_rotate(rb_tree *tree, rbNode *node, int left_or_right){
          new_node->left = node;
      }
      else{
+         // printf("\nRotating %d Left\n", node->data);
+
         //  printf("\nleftt");
          node->left = new_node->right;
          if(node->left != tree->nil){
@@ -100,8 +102,11 @@ static void rb_insert_fixup(rb_tree *tree, rbNode *node){
         node->parent->color = RBT_BLACK;
         node = grandparent; // taking pointer up
         uncle = rb_uncle(tree, node);
+        grandparent = node->parent->parent;
     }
+    
     if (node->parent->color == RBT_BLACK){
+        // node->color = RBT_BLACK;
         if (node == tree->root) node->color = RBT_BLACK;
         return;
     }
@@ -130,8 +135,12 @@ static void rb_insert_fixup(rb_tree *tree, rbNode *node){
     //
     node->parent->color = RBT_BLACK;
     grandparent->color = RBT_RED;
-    rb_rotate(tree, grandparent, grandparent->left == uncle);
+
+    // if ( (node->parent->right == node) == (grandparent->left == uncle) ){
+        rb_rotate(tree, grandparent, grandparent->left == uncle);
+    // }
     tree->root->color = RBT_BLACK;
+
     // return tree;
 }
 
@@ -264,8 +273,9 @@ static void rb_remove_fixup(rb_tree *tree, rbNode *node){
                 sibling->left->color = RBT_BLACK;
             }
             rb_rotate(tree, node->parent, is_left);
-            node = tree->root;
+        // node = tree->root;
         }
+        node = tree->root;
     }
     node->color = RBT_BLACK;
 }
