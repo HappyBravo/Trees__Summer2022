@@ -60,7 +60,7 @@ static void rb_rotate(rb_tree *tree, rbNode *node, int left_or_right){
      rbNode *new_node = (left_or_right) ? node->right : node->left;
 
      if (left_or_right){
-         // printf("\nRotating %d Right\n", node->data);
+         // printf("\nRotating %d Left\n", node->data);
          node->right = new_node->left;
          if(node->right != tree->nil){
              node->right->parent = node;
@@ -68,9 +68,8 @@ static void rb_rotate(rb_tree *tree, rbNode *node, int left_or_right){
          new_node->left = node;
      }
      else{
-         // printf("\nRotating %d Left\n", node->data);
-
-        //  printf("\nleftt");
+         // printf("\nRotating %d Right\n", node->data);
+         
          node->left = new_node->right;
          if(node->left != tree->nil){
              node->left->parent = node;
@@ -243,6 +242,10 @@ static void rb_remove_fixup(rb_tree *tree, rbNode *node){
             sibling->parent->color = RBT_RED;
             rb_rotate(tree, sibling->parent, is_left);
             sibling = (is_left) ? node->parent->right : node->parent->left;
+            
+            // rb_print_tree(tree);
+            // char tem;
+            // scanf("%c", &tem);
         }
         // CASE 2 : SIBLING IS BLACK, BOTH SIBLING'S CHILDREN ARE BLACK
         if (sibling->left->color == RBT_BLACK && sibling->right->color == RBT_BLACK){
@@ -273,9 +276,9 @@ static void rb_remove_fixup(rb_tree *tree, rbNode *node){
                 sibling->left->color = RBT_BLACK;
             }
             rb_rotate(tree, node->parent, is_left);
-        // node = tree->root;
-        }
         node = tree->root;
+        }
+        // node = tree->root;
     }
     node->color = RBT_BLACK;
 }
