@@ -1,4 +1,5 @@
 #include "rbt_functions.c"
+// #include "red_black_tree_functions.c"
 #include "python_functions.c" // FROM "https://github.com/HappyBravo/python_functions_in_C"
 #include <unistd.h>
 #include <time.h>
@@ -13,10 +14,11 @@ int main(){
     int n;
     srand(time(NULL));
 
-    for(int i = 0; i<10; i++){
-        // n = rand()%100;
-        printf("ENTER NUMBER : ");
-        scanf("%d", &n);
+    // while (atoi(python_input("INSERT NUMBER ? (1/0) : "))){
+    for(int i = 0; i<20; i++){
+        n = rand()%100;
+        // printf("ENTER NUMBER : ");
+        // scanf("%d", &n);
         printf("\n\tINSERTING %d IN THE TREE.....\n\n", n);
         // sleep(2);
         root = rb_insert(root, n);
@@ -25,9 +27,9 @@ int main(){
         // printf("\nInserting %d\n", arr[i]);
         // root = rb_insert(root, arr[i]);
         
-        rb_print_tree(root);
-        printf("\n\n");
-        scanf("%c", &t);
+        // rb_print_tree(root);
+        // printf("\n\n");
+        // scanf("%c", &t);
     }
     printf("\n\t<<<\tFINAL TREE\t>>>\n\n");
     rb_print_tree(root);
