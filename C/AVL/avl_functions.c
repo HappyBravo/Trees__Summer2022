@@ -131,7 +131,6 @@ avlNode *avl_insert(avlNode *root, int data){
     }
     else if (data == root->data){
         // printf("%d IS ALREADY PRESENT!!!", data); // <---- PRINTING
-        
         return root;
     }
     
@@ -158,7 +157,7 @@ avlNode *avl_remove(avlNode *root, int d){
     avlNode *temp = NULL;
     if (!(root)) {
         
-        // printf("\n%d IS NOT PRESENT IN THE TREE!!!\n", d); // <---- PRINTING
+        printf("\n%d IS NOT PRESENT IN THE TREE!!!\n", d); // <---- PRINTING
         
         return root;
     }

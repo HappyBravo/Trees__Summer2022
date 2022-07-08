@@ -60,7 +60,7 @@ static void rb_rotate(rb_tree *tree, rbNode *node, int left_or_right){
      rbNode *new_node = (left_or_right) ? node->right : node->left;
 
      if (left_or_right){
-         printf("\nRotating %d Left\n", node->data);
+        //  printf("\nRotating %d Left\n", node->data);
          node->right = new_node->left;
          if(node->right != tree->nil){
              node->right->parent = node;
@@ -68,7 +68,7 @@ static void rb_rotate(rb_tree *tree, rbNode *node, int left_or_right){
          new_node->left = node;
      }
      else{
-         printf("\nRotating %d Right\n", node->data);
+        //  printf("\nRotating %d Right\n", node->data);
 
         //  printf("\nleftt");
          node->left = new_node->right;
@@ -147,7 +147,7 @@ static void rb_insert_fixup(rb_tree *tree, rbNode *node){
 rb_tree *rb_insert(rb_tree *tree, int data){
     
     if (tree == NULL){
-        printf("\n>>> TREE DOES NOT EXIST!!!\n>>> MAKING NEW TREE");
+        // printf("\n>>> TREE DOES NOT EXIST!!!\n>>> MAKING NEW TREE");
         tree = (rb_tree *)malloc(sizeof(rb_tree));
         tree->nil = (rbNode *)malloc(sizeof(rbNode));
         tree->nil->color = 0;
@@ -155,7 +155,7 @@ rb_tree *rb_insert(rb_tree *tree, int data){
         tree->nil->right = tree->nil;
         tree->nil->parent = tree->nil;
         tree->root = tree->nil; 
-        printf("\n>>> NEW TREE MADE!!!\n");
+        // printf("\n>>> NEW TREE MADE!!!\n");
     }
     rbNode *new_node;
     rbNode *parent = tree->nil;
@@ -167,7 +167,7 @@ rb_tree *rb_insert(rb_tree *tree, int data){
         if (data < temp->data) temp = temp->left;
         else if (data > temp->data) temp = temp->right;
         else{
-            printf("\n>>> %d IS ALREADY PRESENT !!!\n", data);
+            // printf("\n>>> %d IS ALREADY PRESENT !!!\n", data);
             return tree;
         }
     }

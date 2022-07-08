@@ -8,20 +8,20 @@ int main(){
     rb_tree *root = NULL;
     char t;
     
-    // int arr[10] = {11, 2, 20, 45, 98, 22, 62, 64, 50, 84};
+    int arr[10] = {31, 70, 7, 33, 8, 0, 62, 94, 50, 82};
     
     // printf("\n\t - - - - - Inserting random numbers - - - - - - \n");
     int n;
     srand(time(NULL));
 
     // while (atoi(python_input("INSERT NUMBER ? (1/0) : "))){
-    for(int i = 0; i<20; i++){
+    for(int i = 0; i<10; i++){
         n = rand()%100;
         // printf("ENTER NUMBER : ");
         // scanf("%d", &n);
-        printf("\n\tINSERTING %d IN THE TREE.....\n\n", n);
+        // printf("\n\tINSERTING %d IN THE TREE.....\n\n", n);
         // sleep(2);
-        root = rb_insert(root, n);
+        root = rb_insert(root, arr[i]);
 
 
         // printf("\nInserting %d\n", arr[i]);

@@ -206,7 +206,7 @@ class BST(Tree):
                     break
         else:
             self.root = bt_Node(data)
-            print("new node as ROOT created")
+            # print("new node as ROOT created")
 
     def remove_main(self, node, data):
         if node is None: # IF DATA IS NOT PRESENT
@@ -322,12 +322,12 @@ class AVL(Tree):
             node.right = self.insert_main(node.right, data)
          
         else:
-            print(f"{data} ALREADY EXIST !!!")
+            # print(f"{data} ALREADY EXIST !!!")
             return node
 
         
         balance_fact = self.balance_factor(node)
-        print(f"Balance factor at {node.data} = {balance_fact}")
+        # print(f"Balance factor at {node.data} = {balance_fact}")
          
         if balance_fact > 1:                  # LEFT TREE IS HEAVY
             if data < node.left.data:          # LEFT LEFT
@@ -582,7 +582,7 @@ class RBT(Tree):
             return node
         # elif data == node.data:
         elif comp == 0:
-            print(f"{data} already exist.")
+            # print(f"{data} already exist.")
             return node
         elif comp == -1:
             if node.left.data == None:
